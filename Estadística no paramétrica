@@ -1,0 +1,82 @@
+df<-as.data.frame(IC50_R)
+library(agricolae)
+library(MASS)
+#install.packages('tidyverse')
+#library(tidyverse)
+library(rstatix)
+str(df)
+#preparacion de datos
+Edad<-factor(df[,1])
+Luz<-factor(df[,2])
+Chakra<-factor(df[,3])
+TEAC<-df$TEAC
+summary(df)
+#Exploracion de datos
+tapply(df$TEAC,Luz,summary)
+tapply(df$TEAC,Edad ,summary)
+tapply(df$TEAC,Chakra,summary)
+boxplot(TEAC~Edad,xlab="Edad",ylab="TEAC",col=rainbow(10))
+boxplot(TEAC~Luz,xlab="Luz",ylab="TEAC",col=rainbow(10))
+boxplot(TEAC~Chakra,xlab="Chakra", ylab="TEAC",col=rainbow(10))
+#Prueba Anova
+dca=aov(TEAC~ Chakra*Luz*Edad)
+summary(dca)
+#Supuestos
+#Supuesto de normalidad
+error<-residuals(dca)#Residuales
+shapiro.test(error)#aQUI NO 
+#Supuesto de homogeneidad
+library(car)
+leveneTest(TEAC~ Chakra*Luz*Edad, center = "median")
+#Prueba de Ljung-Box para el supuesto de Independencia:
+Box.test(error,type = "Ljung-Box")
+#eSTADISTICA NO PARAMETRICA
+shapiro.test(TEAC)# Aqui me salio que si eran normales 
+#El método de Kruskal Wallis.
+#Edad
+comparison1<-with(df,kruskal(TEAC,Edad,p.adj="bon",
+                              group=T, main="TEAC"))
+comparison1
+#Grafico
+library(ggpubr)
+ggplot(df, aes(x =Edad, y = TEAC, fill = Edad))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0,0.36)+
+  stat_compare_means(method = "kruskal",label.y = 0.36)+
+  stat_compare_means(method = "wilcox.test", ref.group = "Edad", label = "p.signif", label.y = 0.36)+
+  theme_classic()
+#Luz
+comparison1<-with(df,kruskal(TEAC,Luz,p.adj="bon",
+                             group=T, main="TEAC"))
+comparison1
+#Grafico
+ggplot(df, aes(x =Luz, y = TEAC, fill = Luz))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0,0.36)+
+  stat_compare_means(method = "kruskal",label.y = 0.36)+
+  stat_compare_means(method = "wilcox.test", ref.group = "Luz", label = "p.signif", label.y = 0.36)+
+  theme_classic()
+#Chakra
+comparison1<-with(df,kruskal(TEAC,Chakra,p.adj="bon",
+                             group=T, main="TEAC"))
+comparison1
+#Grafico
+ggplot(df, aes(x =Chakra, y = TEAC, fill = Chakra))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0,0.36)+
+  stat_compare_means(method = "kruskal",label.y = 0.36)+
+  stat_compare_means(method = "wilcox.test", ref.group = "Chakra",label = "p.signif", label.y = 0.36)+
+  theme_classic()
+#Grafico Combinado luz y edad, esta bien combinar?
+
+ggplot(df, aes(x =Luz, y = TEAC, fill = Chakra))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0,0.36)+
+  stat_compare_means(method = "kruskal",label.y = 0.36)+
+  stat_compare_means(method = "wilcox.test", ref.group = "Chakra",label = "p.signif", label.y = 0.36)+
+  theme_classic()
+
